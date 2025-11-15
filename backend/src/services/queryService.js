@@ -2,6 +2,7 @@ const prisma = require('../config/database');
 const { NotFoundError, ValidationError } = require('../utils/errors');
 const logger = require('../utils/logger');
 const config = require('../config/config');
+const MLService = require('./mlService');
 
 /**
  * Calculate SLA due date based on priority
@@ -222,7 +223,7 @@ const getQueryById = async (queryId) => {
 };
 
 /**
- * Create a new query
+ * Create a new query with ML auto-tagging
  */
 const createQuery = async (queryData) => {
   try {
@@ -235,16 +236,17 @@ const createQuery = async (queryData) => {
       senderEmail,
       senderPhone,
       senderId,
-      sentiment = 'NEUTRAL',
+      sentiment,
       intent,
       confidence,
-      autoTags = [],
+      autoTags,
       priority,
-      isVip = false,
+      isVip,
       externalId,
       threadId,
       attachments = [],
       metadata,
+      skipMLAnalysis = false, // Option to skip ML analysis if already done
     } = queryData;
 
     // Verify channel exists
@@ -256,10 +258,65 @@ const createQuery = async (queryData) => {
       throw new ValidationError('Channel not found');
     }
 
+    // Perform ML analysis if not skipped and content is provided
+    let mlAnalysis = null;
+    if (!skipMLAnalysis && content) {
+      try {
+        mlAnalysis = await MLService.analyzeQuery({
+          text: content,
+          subject: subject,
+          senderEmail: senderEmail,
+          senderId: senderId,
+          channelType: channel.type,
+        });
+        logger.info('ML analysis completed for new query', {
+          category: mlAnalysis.category,
+          sentiment: mlAnalysis.sentiment,
+          priority: mlAnalysis.priority
+        });
+      } catch (error) {
+        logger.warn('ML analysis failed, using defaults', { error: error.message });
+        mlAnalysis = MLService.getDefaultAnalysis();
+      }
+    }
+
+    // Use ML analysis results or provided values
+    const finalSentiment = sentiment || (mlAnalysis?.sentiment || 'NEUTRAL');
+    const finalIntent = intent || (mlAnalysis?.intent || null);
+    const finalConfidence = confidence ?? (mlAnalysis?.category_confidence || 0.5);
+    const finalAutoTags = autoTags || (mlAnalysis?.auto_tags || []);
+    const finalIsVip = isVip ?? (mlAnalysis?.is_vip || false);
+    
+    // Determine priority: use provided, ML result, or fallback to detection
+    let finalPriority = priority;
+    if (!finalPriority && mlAnalysis) {
+      finalPriority = mlAnalysis.priority;
+    }
+    if (!finalPriority) {
+      finalPriority = detectPriority(content, finalIsVip, finalSentiment);
+    }
+
+    // Verify category if provided, or try to find category by ML result
+    let finalCategoryId = categoryId;
+    if (!finalCategoryId && mlAnalysis?.category) {
+      // Try to find category by name from ML analysis
+      const category = await prisma.category.findFirst({
+        where: {
+          name: {
+            equals: mlAnalysis.category,
+            mode: 'insensitive'
+          }
+        }
+      });
+      if (category) {
+        finalCategoryId = category.id;
+      }
+    }
+
     // Verify category if provided
-    if (categoryId) {
+    if (finalCategoryId) {
       const category = await prisma.category.findUnique({
-        where: { id: categoryId },
+        where: { id: finalCategoryId },
       });
 
       if (!category) {
@@ -267,30 +324,30 @@ const createQuery = async (queryData) => {
       }
     }
 
-    // Auto-detect priority if not provided
-    const detectedPriority = priority || detectPriority(content, isVip, sentiment);
+    // Determine if urgent
+    const isUrgent = mlAnalysis?.is_urgent || finalPriority === 'HIGH' || finalPriority === 'CRITICAL';
 
     // Calculate SLA due date
-    const slaDueAt = calculateSlaDueAt(detectedPriority);
+    const slaDueAt = calculateSlaDueAt(finalPriority);
 
     // Create query
     const query = await prisma.query.create({
       data: {
         channelId,
-        categoryId,
+        categoryId: finalCategoryId,
         subject,
         content,
         senderName,
         senderEmail,
         senderPhone,
         senderId,
-        sentiment,
-        intent,
-        confidence,
-        autoTags,
-        priority: detectedPriority,
-        isVip,
-        isUrgent: detectedPriority === 'HIGH' || detectedPriority === 'CRITICAL',
+        sentiment: finalSentiment,
+        intent: finalIntent,
+        confidence: finalConfidence,
+        autoTags: finalAutoTags,
+        priority: finalPriority,
+        isVip: finalIsVip,
+        isUrgent: isUrgent,
         externalId,
         threadId,
         attachments,

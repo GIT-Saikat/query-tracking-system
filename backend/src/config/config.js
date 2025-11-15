@@ -25,6 +25,10 @@ module.exports = {
   // Socket.io
   socketPort: parseInt(process.env.SOCKET_PORT) || 5001,
   
+  // ML Service Configuration
+  mlServiceUrl: process.env.ML_SERVICE_URL || 'http://localhost:8001',
+  mlServiceTimeout: parseInt(process.env.ML_SERVICE_TIMEOUT) || 10000,
+  
   // SLA Configuration (in hours)
   slaTimes: {
     CRITICAL: 1,   // 1 hour
