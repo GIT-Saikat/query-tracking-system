@@ -1,0 +1,261 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for agents, managers, and admins
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  role          UserRole  @default(AGENT)
+  department    String?
+  isActive      Boolean   @default(true) @map("is_active")
+  skills        String[]  @default([])
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  assignedQueries   Assignment[]
+  createdResponses  Response[]
+  escalations       Escalation[]
+  analytics         Analytics[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  AGENT
+}
+
+// Channel model for platform configurations
+model Channel {
+  id            String       @id @default(uuid())
+  name          String       @unique // e.g., "Email", "Twitter", "Facebook"
+  type          ChannelType
+  isActive      Boolean      @default(true) @map("is_active")
+  configuration Json?        // Platform-specific configuration (API keys, tokens, etc.)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  queries Query[]
+
+  @@map("channels")
+}
+
+enum ChannelType {
+  EMAIL
+  TWITTER
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  DISCORD
+  SLACK
+  TEAMS
+  WHATSAPP
+  WEBSITE_CHAT
+}
+
+// Category model for classification types
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., "Question", "Complaint", "Compliment"
+  description String?
+  color       String?  // Hex color for UI display
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  queries Query[]
+
+  @@map("categories")
+}
+
+// Query model for incoming messages
+model Query {
+  id              String        @id @default(uuid())
+  channelId       String        @map("channel_id")
+  categoryId      String?       @map("category_id")
+  subject         String?
+  content         String        @db.Text
+  senderName      String?       @map("sender_name")
+  senderEmail     String?       @map("sender_email")
+  senderPhone     String?       @map("sender_phone")
+  senderId        String?       @map("sender_id") // Platform-specific sender ID
+  
+  // Auto-tagging results
+  sentiment       Sentiment     @default(NEUTRAL)
+  intent          String?
+  confidence      Float?        // ML model confidence score (0-1)
+  autoTags        String[]      @default([]) @map("auto_tags")
+  
+  // Priority and status
+  priority        Priority      @default(MEDIUM)
+  status          QueryStatus   @default(NEW)
+  isVip           Boolean       @default(false) @map("is_vip")
+  isUrgent        Boolean       @default(false) @map("is_urgent")
+  
+  // Metadata
+  externalId      String?       @unique @map("external_id") // Platform-specific message ID
+  threadId        String?       @map("thread_id") // For threading conversations
+  attachments     String[]      @default([]) // URLs or paths to attachments
+  metadata        Json?         // Additional platform-specific data
+  
+  // Timestamps
+  receivedAt      DateTime      @default(now()) @map("received_at")
+  assignedAt      DateTime?     @map("assigned_at")
+  resolvedAt      DateTime?     @map("resolved_at")
+  closedAt        DateTime?     @map("closed_at")
+  slaDueAt        DateTime?     @map("sla_due_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  channel         Channel       @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  category        Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  assignments     Assignment[]
+  responses       Response[]
+  escalations     Escalation[]
+  analytics       Analytics[]
+
+  @@index([channelId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([priority])
+  @@index([receivedAt])
+  @@index([externalId])
+  @@map("queries")
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum QueryStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// Assignment model for query-agent mapping
+model Assignment {
+  id          String   @id @default(uuid())
+  queryId     String   @map("query_id")
+  userId      String   @map("user_id")
+  assignedBy  String?  @map("assigned_by") // User ID who assigned
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  query       Query    @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([queryId, userId])
+  @@index([queryId])
+  @@index([userId])
+  @@map("assignments")
+}
+
+// Response model for outgoing messages
+model Response {
+  id          String   @id @default(uuid())
+  queryId     String   @map("query_id")
+  userId      String   @map("user_id")
+  content     String   @db.Text
+  isInternal  Boolean  @default(false) @map("is_internal")
+  attachments String[] @default([])
+  sentAt      DateTime @default(now()) @map("sent_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  query       Query    @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([queryId])
+  @@index([userId])
+  @@index([sentAt])
+  @@map("responses")
+}
+
+// Escalation model for priority events
+model Escalation {
+  id          String         @id @default(uuid())
+  queryId     String         @map("query_id")
+  userId      String?        @map("user_id") // Agent who escalated
+  reason      String         @db.Text
+  level       EscalationLevel @default(LOW)
+  status      EscalationStatus @default(PENDING)
+  resolvedAt  DateTime?      @map("resolved_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  query       Query          @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  user        User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([queryId])
+  @@index([status])
+  @@map("escalations")
+}
+
+enum EscalationLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EscalationStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+// Analytics model for metrics and reports
+model Analytics {
+  id              String   @id @default(uuid())
+  queryId         String?  @map("query_id")
+  userId          String?  @map("user_id")
+  metricType      String   @map("metric_type") // e.g., "response_time", "resolution_time"
+  metricValue     Float    @map("metric_value")
+  period          String   // e.g., "daily", "weekly", "monthly"
+  date            DateTime @db.Date
+  metadata        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  query           Query?   @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([metricType])
+  @@index([period])
+  @@index([date])
+  @@map("analytics")
+}
+
