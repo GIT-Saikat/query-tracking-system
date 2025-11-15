@@ -219,7 +219,7 @@ export default function QueryDetail() {
             </dd>
           </div>
 
-          {/* Actions */}
+          {
           <div className="mt-6 flex gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -256,7 +256,7 @@ export default function QueryDetail() {
         </div>
       </div>
 
-      {/* Responses */}
+      {
       <div className="mt-8">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Responses</h3>
         <div className="space-y-4">
@@ -289,7 +289,7 @@ export default function QueryDetail() {
           ))}
         </div>
 
-        {/* Add Response Form */}
+        {
         <div className="mt-6 bg-white shadow rounded-lg p-4">
           <form onSubmit={handleSubmitResponse}>
             <div className="mb-4">

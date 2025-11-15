@@ -1,9 +1,6 @@
 const categoryService = require('../services/categoryService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-/**
- * Get all categories
- */
 const getCategories = asyncHandler(async (req, res) => {
   const result = await categoryService.getCategories();
 
@@ -13,9 +10,6 @@ const getCategories = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get category by ID
- */
 const getCategoryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const category = await categoryService.getCategoryById(id);
@@ -26,9 +20,6 @@ const getCategoryById = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Create category
- */
 const createCategory = asyncHandler(async (req, res) => {
   const category = await categoryService.createCategory(req.body);
 
@@ -39,9 +30,6 @@ const createCategory = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update category
- */
 const updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const category = await categoryService.updateCategory(id, req.body);
@@ -53,9 +41,6 @@ const updateCategory = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Delete category
- */
 const deleteCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   await categoryService.deleteCategory(id);

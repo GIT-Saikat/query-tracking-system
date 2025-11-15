@@ -1,9 +1,6 @@
 const channelService = require('../services/channelService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-/**
- * Get all channels
- */
 const getChannels = asyncHandler(async (req, res) => {
   const filters = {
     isActive: req.query.isActive,
@@ -18,9 +15,6 @@ const getChannels = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get channel by ID
- */
 const getChannelById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const channel = await channelService.getChannelById(id);
@@ -31,9 +25,6 @@ const getChannelById = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Create channel
- */
 const createChannel = asyncHandler(async (req, res) => {
   const channel = await channelService.createChannel(req.body);
 
@@ -44,9 +35,6 @@ const createChannel = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update channel
- */
 const updateChannel = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const channel = await channelService.updateChannel(id, req.body);
@@ -58,9 +46,6 @@ const updateChannel = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Delete channel
- */
 const deleteChannel = asyncHandler(async (req, res) => {
   const { id } = req.params;
   await channelService.deleteChannel(id);

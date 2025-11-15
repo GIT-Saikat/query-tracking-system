@@ -6,32 +6,16 @@ const { validate } = require('../middleware/validation');
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authenticate);
 
-/**
- * @route   GET /api/users
- * @desc    Get all users
- * @access  Private (Admin, Manager)
- */
 router.get('/', authorize('ADMIN', 'MANAGER'), userController.getUsers);
 
-/**
- * @route   GET /api/users/:id
- * @desc    Get user by ID
- * @access  Private
- */
 router.get(
   '/:id',
   [param('id').isUUID().withMessage('Invalid user ID'), validate],
   userController.getUserById
 );
 
-/**
- * @route   PUT /api/users/:id
- * @desc    Update user
- * @access  Private (Admin, Manager, or self)
- */
 router.put(
   '/:id',
   [
@@ -47,11 +31,6 @@ router.put(
   userController.updateUser
 );
 
-/**
- * @route   DELETE /api/users/:id
- * @desc    Delete user
- * @access  Private (Admin)
- */
 router.delete(
   '/:id',
   [param('id').isUUID().withMessage('Invalid user ID'), validate],

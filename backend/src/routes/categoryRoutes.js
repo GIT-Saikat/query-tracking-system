@@ -6,32 +6,16 @@ const { validate } = require('../middleware/validation');
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authenticate);
 
-/**
- * @route   GET /api/categories
- * @desc    Get all categories
- * @access  Private
- */
 router.get('/', categoryController.getCategories);
 
-/**
- * @route   GET /api/categories/:id
- * @desc    Get category by ID
- * @access  Private
- */
 router.get(
   '/:id',
   [param('id').isUUID().withMessage('Invalid category ID'), validate],
   categoryController.getCategoryById
 );
 
-/**
- * @route   POST /api/categories
- * @desc    Create category
- * @access  Private (Admin, Manager)
- */
 router.post(
   '/',
   [
@@ -44,11 +28,6 @@ router.post(
   categoryController.createCategory
 );
 
-/**
- * @route   PUT /api/categories/:id
- * @desc    Update category
- * @access  Private (Admin, Manager)
- */
 router.put(
   '/:id',
   [
@@ -62,11 +41,6 @@ router.put(
   categoryController.updateCategory
 );
 
-/**
- * @route   DELETE /api/categories/:id
- * @desc    Delete category
- * @access  Private (Admin, Manager)
- */
 router.delete(
   '/:id',
   [param('id').isUUID().withMessage('Invalid category ID'), validate],

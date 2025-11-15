@@ -2,9 +2,6 @@ const prisma = require('../config/database');
 const { NotFoundError } = require('../utils/errors');
 const logger = require('../utils/logger');
 
-/**
- * Get all categories
- */
 const getCategories = async () => {
   try {
     const categories = await prisma.category.findMany({
@@ -27,9 +24,6 @@ const getCategories = async () => {
   }
 };
 
-/**
- * Get category by ID
- */
 const getCategoryById = async (categoryId) => {
   try {
     const category = await prisma.category.findUnique({
@@ -54,9 +48,6 @@ const getCategoryById = async (categoryId) => {
   }
 };
 
-/**
- * Create category
- */
 const createCategory = async (categoryData) => {
   try {
     const category = await prisma.category.create({
@@ -70,9 +61,6 @@ const createCategory = async (categoryData) => {
   }
 };
 
-/**
- * Update category
- */
 const updateCategory = async (categoryId, updateData) => {
   try {
     await getCategoryById(categoryId);
@@ -89,9 +77,6 @@ const updateCategory = async (categoryId, updateData) => {
   }
 };
 
-/**
- * Delete category
- */
 const deleteCategory = async (categoryId) => {
   try {
     await getCategoryById(categoryId);

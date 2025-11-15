@@ -2,9 +2,6 @@ const prisma = require('../config/database');
 const { NotFoundError } = require('../utils/errors');
 const logger = require('../utils/logger');
 
-/**
- * Get all channels
- */
 const getChannels = async (filters = {}) => {
   try {
     const { isActive, search } = filters;
@@ -39,9 +36,6 @@ const getChannels = async (filters = {}) => {
   }
 };
 
-/**
- * Get channel by ID
- */
 const getChannelById = async (channelId) => {
   try {
     const channel = await prisma.channel.findUnique({
@@ -66,9 +60,6 @@ const getChannelById = async (channelId) => {
   }
 };
 
-/**
- * Create channel
- */
 const createChannel = async (channelData) => {
   try {
     const channel = await prisma.channel.create({
@@ -82,9 +73,6 @@ const createChannel = async (channelData) => {
   }
 };
 
-/**
- * Update channel
- */
 const updateChannel = async (channelId, updateData) => {
   try {
     await getChannelById(channelId);
@@ -101,9 +89,6 @@ const updateChannel = async (channelId, updateData) => {
   }
 };
 
-/**
- * Delete channel
- */
 const deleteChannel = async (channelId) => {
   try {
     await getChannelById(channelId);

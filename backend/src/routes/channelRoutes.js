@@ -6,32 +6,16 @@ const { validate } = require('../middleware/validation');
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authenticate);
 
-/**
- * @route   GET /api/channels
- * @desc    Get all channels
- * @access  Private
- */
 router.get('/', channelController.getChannels);
 
-/**
- * @route   GET /api/channels/:id
- * @desc    Get channel by ID
- * @access  Private
- */
 router.get(
   '/:id',
   [param('id').isUUID().withMessage('Invalid channel ID'), validate],
   channelController.getChannelById
 );
 
-/**
- * @route   POST /api/channels
- * @desc    Create channel
- * @access  Private (Admin, Manager)
- */
 router.post(
   '/',
   [
@@ -44,11 +28,6 @@ router.post(
   channelController.createChannel
 );
 
-/**
- * @route   PUT /api/channels/:id
- * @desc    Update channel
- * @access  Private (Admin, Manager)
- */
 router.put(
   '/:id',
   [
@@ -61,11 +40,6 @@ router.put(
   channelController.updateChannel
 );
 
-/**
- * @route   DELETE /api/channels/:id
- * @desc    Delete channel
- * @access  Private (Admin)
- */
 router.delete(
   '/:id',
   [param('id').isUUID().withMessage('Invalid channel ID'), validate],

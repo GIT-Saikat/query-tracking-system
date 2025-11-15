@@ -9,7 +9,6 @@ const api = axios.create({
   },
 })
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -23,7 +22,6 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor to handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -36,7 +34,6 @@ api.interceptors.response.use(
   }
 )
 
-// Auth API
 export const authAPI = {
   login: async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password })
@@ -57,7 +54,6 @@ export const authAPI = {
   },
 }
 
-// Query API
 export const queryAPI = {
   getQueries: async (params?: {
     status?: string
@@ -102,7 +98,6 @@ export const queryAPI = {
   },
 }
 
-// Channel API
 export const channelAPI = {
   getChannels: async () => {
     const response = await api.get('/channels')
@@ -112,9 +107,56 @@ export const channelAPI = {
     const response = await api.get(`/channels/${id}`)
     return response.data
   },
+  createChannel: async (data: {
+    name: string
+    type: string
+    isActive?: boolean
+    configuration?: Record<string, any>
+  }) => {
+    const response = await api.post('/channels', data)
+    return response.data
+  },
+  updateChannel: async (id: string, data: {
+    name?: string
+    isActive?: boolean
+    configuration?: Record<string, any>
+  }) => {
+    const response = await api.put(`/channels/${id}`, data)
+    return response.data
+  },
+  deleteChannel: async (id: string) => {
+    const response = await api.delete(`/channels/${id}`)
+    return response.data
+  },
 }
 
-// Category API
+export const integrationAPI = {
+  startIntegration: async (channelId: string) => {
+    const response = await api.post(`/integrations/${channelId}/start`)
+    return response.data
+  },
+  stopIntegration: async (channelId: string) => {
+    const response = await api.post(`/integrations/${channelId}/stop`)
+    return response.data
+  },
+  testConnection: async (channelId: string) => {
+    const response = await api.post(`/integrations/${channelId}/test`)
+    return response.data
+  },
+  getIntegrationStatus: async (channelId: string) => {
+    const response = await api.get(`/integrations/${channelId}/status`)
+    return response.data
+  },
+  getAllIntegrationStatuses: async () => {
+    const response = await api.get('/integrations/status')
+    return response.data
+  },
+  reloadIntegration: async (channelId: string) => {
+    const response = await api.post(`/integrations/${channelId}/reload`)
+    return response.data
+  },
+}
+
 export const categoryAPI = {
   getCategories: async () => {
     const response = await api.get('/categories')
@@ -126,7 +168,6 @@ export const categoryAPI = {
   },
 }
 
-// Response API
 export const responseAPI = {
   getResponses: async (queryId: string) => {
     const response = await api.get(`/responses/query/${queryId}`)

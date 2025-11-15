@@ -1,9 +1,6 @@
 const authService = require('../services/authService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-/**
- * Register a new user
- */
 const register = asyncHandler(async (req, res) => {
   const { email, password, firstName, lastName, role, department, skills } = req.body;
 
@@ -24,9 +21,6 @@ const register = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Login user
- */
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -39,9 +33,6 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get current user
- */
 const getCurrentUser = asyncHandler(async (req, res) => {
   const user = await authService.getCurrentUser(req.user.id);
 

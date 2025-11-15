@@ -2,12 +2,9 @@ const prisma = require('../config/database');
 const { NotFoundError, ValidationError } = require('../utils/errors');
 const logger = require('../utils/logger');
 
-/**
- * Get all responses for a query
- */
 const getResponses = async (queryId) => {
   try {
-    // Verify query exists
+
     const query = await prisma.query.findUnique({
       where: { id: queryId },
     });
@@ -41,14 +38,10 @@ const getResponses = async (queryId) => {
   }
 };
 
-/**
- * Create a new response
- */
 const createResponse = async (responseData) => {
   try {
     const { queryId, userId, content, isInternal = false, attachments = [] } = responseData;
 
-    // Verify query exists
     const query = await prisma.query.findUnique({
       where: { id: queryId },
     });
@@ -57,7 +50,6 @@ const createResponse = async (responseData) => {
       throw new NotFoundError('Query');
     }
 
-    // Verify user exists
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -66,7 +58,6 @@ const createResponse = async (responseData) => {
       throw new NotFoundError('User');
     }
 
-    // Create response
     const response = await prisma.response.create({
       data: {
         queryId,
@@ -95,7 +86,6 @@ const createResponse = async (responseData) => {
       },
     });
 
-    // Update query status if it's NEW or ASSIGNED
     if (query.status === 'NEW' || query.status === 'ASSIGNED') {
       await prisma.query.update({
         where: { id: queryId },
@@ -112,9 +102,6 @@ const createResponse = async (responseData) => {
   }
 };
 
-/**
- * Update response
- */
 const updateResponse = async (responseId, updateData) => {
   try {
     const response = await prisma.response.findUnique({
@@ -147,9 +134,6 @@ const updateResponse = async (responseId, updateData) => {
   }
 };
 
-/**
- * Delete response
- */
 const deleteResponse = async (responseId) => {
   try {
     const response = await prisma.response.findUnique({

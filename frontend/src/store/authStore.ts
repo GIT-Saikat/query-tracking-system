@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await authAPI.login(email, password)
       console.log('Login response:', response)
-      // API service returns response.data, which is { status, message, data: { user, token } }
+
       const { token, user } = response.data
       if (!token || !user) {
         console.error('Missing token or user in response:', response)
@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const response = await authAPI.register(data)
       console.log('Register response:', response)
-      // API service returns response.data, which is { status, message, data: { user, token } }
+
       const { token, user } = response.data
       if (!token || !user) {
         console.error('Missing token or user in response:', response)
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       const response = await authAPI.getCurrentUser()
-      // API service returns response.data, which is { status, data: { user } }
+
       const user = response.data?.user
       if (user) {
         set({ user, isAuthenticated: true })
@@ -114,7 +114,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }))
 
-// Initialize auth state from localStorage
 const storedUser = localStorage.getItem('user')
 if (storedUser) {
   useAuthStore.setState({ user: JSON.parse(storedUser) })

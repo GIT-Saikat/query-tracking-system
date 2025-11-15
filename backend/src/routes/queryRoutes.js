@@ -6,32 +6,16 @@ const { validate } = require('../middleware/validation');
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authenticate);
 
-/**
- * @route   GET /api/queries
- * @desc    Get all queries with filters
- * @access  Private
- */
 router.get('/', queryController.getQueries);
 
-/**
- * @route   GET /api/queries/:id
- * @desc    Get query by ID
- * @access  Private
- */
 router.get(
   '/:id',
   [param('id').isUUID().withMessage('Invalid query ID'), validate],
   queryController.getQueryById
 );
 
-/**
- * @route   POST /api/queries
- * @desc    Create a new query
- * @access  Private (Admin, Manager, or System)
- */
 router.post(
   '/',
   [
@@ -45,11 +29,6 @@ router.post(
   queryController.createQuery
 );
 
-/**
- * @route   PUT /api/queries/:id
- * @desc    Update query
- * @access  Private
- */
 router.put(
   '/:id',
   [
@@ -62,11 +41,6 @@ router.put(
   queryController.updateQuery
 );
 
-/**
- * @route   DELETE /api/queries/:id
- * @desc    Delete query
- * @access  Private (Admin, Manager)
- */
 router.delete(
   '/:id',
   [param('id').isUUID().withMessage('Invalid query ID'), validate],
@@ -74,11 +48,6 @@ router.delete(
   queryController.deleteQuery
 );
 
-/**
- * @route   POST /api/queries/:id/assign
- * @desc    Assign query to user
- * @access  Private (Admin, Manager)
- */
 router.post(
   '/:id/assign',
   [

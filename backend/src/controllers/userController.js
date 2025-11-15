@@ -1,9 +1,6 @@
 const userService = require('../services/userService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-/**
- * Get all users
- */
 const getUsers = asyncHandler(async (req, res) => {
   const filters = {
     role: req.query.role,
@@ -22,9 +19,6 @@ const getUsers = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get user by ID
- */
 const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const user = await userService.getUserById(id);
@@ -35,9 +29,6 @@ const getUserById = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update user
- */
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const user = await userService.updateUser(id, req.body);
@@ -49,9 +40,6 @@ const updateUser = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Delete user
- */
 const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   await userService.deleteUser(id);

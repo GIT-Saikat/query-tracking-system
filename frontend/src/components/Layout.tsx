@@ -4,6 +4,7 @@ import {
   HomeIcon,
   InboxIcon,
   ArrowRightOnRectangleIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline'
 
 export default function Layout() {
@@ -13,11 +14,12 @@ export default function Layout() {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Queries', href: '/queries', icon: InboxIcon },
+    { name: 'Channels', href: '/channels', icon: ChatBubbleLeftRightIcon },
   ]
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
+      {
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -70,7 +72,7 @@ export default function Layout() {
         </div>
       </nav>
 
-      {/* Main Content */}
+      {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <Outlet />
       </main>

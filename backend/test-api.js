@@ -1,16 +1,10 @@
-/**
- * Simple API Test Script
- * Run with: node test-api.js
- * 
- * This script tests the core Phase 1 functionality
- */
+
 
 const http = require('http');
 
 const BASE_URL = 'http://localhost:5000/api';
 let authToken = '';
 
-// Helper function to make HTTP requests
 function makeRequest(method, path, data = null, token = null) {
   return new Promise((resolve, reject) => {
     const options = {
@@ -50,7 +44,6 @@ function makeRequest(method, path, data = null, token = null) {
   });
 }
 
-// Test functions
 async function testHealthCheck() {
   console.log('\n✅ Test 1: Health Check');
   try {
@@ -272,7 +265,6 @@ async function testUnauthorizedAccess() {
   }
 }
 
-// Main test runner
 async function runTests() {
   console.log('🚀 Starting Backend API Tests');
   console.log('================================\n');
@@ -283,61 +275,50 @@ async function runTests() {
     total: 0,
   };
 
-  // Test 1: Health Check
   results.total++;
   if (await testHealthCheck()) results.passed++;
   else results.failed++;
 
-  // Test 2: Login
   results.total++;
   if (await testLogin()) results.passed++;
   else results.failed++;
 
-  // Test 3: Get Current User
   results.total++;
   if (await testGetCurrentUser()) results.passed++;
   else results.failed++;
 
-  // Test 4: Get Channels
   results.total++;
   const channelId = await testGetChannels();
   if (channelId) results.passed++;
   else results.failed++;
 
-  // Test 5: Get Categories
   results.total++;
   await testGetCategories();
-  results.passed++; // Just verify it works
+  results.passed++;
 
-  // Test 6: Create Query
   results.total++;
   const queryId = await testCreateQuery(channelId);
   if (queryId) results.passed++;
   else results.failed++;
 
-  // Test 7: Priority Detection
   results.total++;
   if (await testCreateQueryWithUrgency(channelId)) results.passed++;
   else results.failed++;
 
-  // Test 8: Get Queries
   results.total++;
   if (await testGetQueries()) results.passed++;
   else results.failed++;
 
-  // Test 9: Create Response (if query was created)
   if (queryId) {
     results.total++;
     if (await testCreateResponse(queryId)) results.passed++;
     else results.failed++;
   }
 
-  // Test 10: Unauthorized Access
   results.total++;
   if (await testUnauthorizedAccess()) results.passed++;
   else results.failed++;
 
-  // Summary
   console.log('\n================================');
   console.log('📊 Test Results Summary');
   console.log('================================');
@@ -354,7 +335,6 @@ async function runTests() {
   }
 }
 
-// Run tests
 runTests().catch((error) => {
   console.error('\n❌ Test runner error:', error);
   process.exit(1);

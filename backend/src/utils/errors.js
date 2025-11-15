@@ -33,7 +33,6 @@ class ForbiddenError extends AppError {
   }
 }
 
-// Global error handler middleware
 const handleError = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -46,14 +45,14 @@ const handleError = (err, req, res, next) => {
       stack: err.stack,
     });
   } else {
-    // Production error response
+
     if (err.isOperational) {
       res.status(err.statusCode).json({
         status: err.status,
         message: err.message,
       });
     } else {
-      // Log error for investigation
+
       console.error('ERROR 💥', err);
       res.status(500).json({
         status: 'error',

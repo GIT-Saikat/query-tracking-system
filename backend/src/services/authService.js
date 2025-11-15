@@ -5,23 +5,16 @@ const config = require('../config/config');
 const { UnauthorizedError, ValidationError } = require('../utils/errors');
 const logger = require('../utils/logger');
 
-/**
- * Generate JWT token
- */
 const generateToken = (userId) => {
   return jwt.sign({ userId }, config.jwtSecret, {
     expiresIn: config.jwtExpiresIn,
   });
 };
 
-/**
- * Register a new user
- */
 const register = async (userData) => {
   try {
     const { email, password, firstName, lastName, role, department, skills } = userData;
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -30,10 +23,8 @@ const register = async (userData) => {
       throw new ValidationError('User with this email already exists');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         email,
@@ -57,7 +48,6 @@ const register = async (userData) => {
       },
     });
 
-    // Generate token
     const token = generateToken(user.id);
 
     return {
@@ -70,12 +60,9 @@ const register = async (userData) => {
   }
 };
 
-/**
- * Login user
- */
 const login = async (email, password) => {
   try {
-    // Find user
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -84,22 +71,18 @@ const login = async (email, password) => {
       throw new UnauthorizedError('Invalid email or password');
     }
 
-    // Check if user is active
     if (!user.isActive) {
       throw new UnauthorizedError('User account is inactive');
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedError('Invalid email or password');
     }
 
-    // Generate token
     const token = generateToken(user.id);
 
-    // Return user without password
     const { password: _, ...userWithoutPassword } = user;
 
     return {
@@ -112,9 +95,6 @@ const login = async (email, password) => {
   }
 };
 
-/**
- * Get current user
- */
 const getCurrentUser = async (userId) => {
   try {
     const user = await prisma.user.findUnique({

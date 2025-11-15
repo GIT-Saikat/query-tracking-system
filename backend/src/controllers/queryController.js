@@ -1,9 +1,6 @@
 const queryService = require('../services/queryService');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-/**
- * Get all queries
- */
 const getQueries = asyncHandler(async (req, res) => {
   const filters = {
     status: req.query.status,
@@ -26,9 +23,6 @@ const getQueries = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Get query by ID
- */
 const getQueryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const query = await queryService.getQueryById(id);
@@ -39,9 +33,6 @@ const getQueryById = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Create a new query
- */
 const createQuery = asyncHandler(async (req, res) => {
   const query = await queryService.createQuery(req.body);
 
@@ -52,9 +43,6 @@ const createQuery = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update query
- */
 const updateQuery = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const query = await queryService.updateQuery(id, req.body);
@@ -66,9 +54,6 @@ const updateQuery = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Delete query
- */
 const deleteQuery = asyncHandler(async (req, res) => {
   const { id } = req.params;
   await queryService.deleteQuery(id);
@@ -79,9 +64,6 @@ const deleteQuery = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Assign query to user
- */
 const assignQuery = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { userId, notes } = req.body;

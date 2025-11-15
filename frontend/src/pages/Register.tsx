@@ -46,7 +46,7 @@ export default function Register() {
     } catch (err: any) {
       console.error('Registration error:', err)
       let errorMessage = 'Registration failed. Please try again.'
-      
+
       if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
         errorMessage = 'Cannot connect to server. Please make sure the backend is running on http://localhost:5000'
       } else if (err.response?.data?.message) {
@@ -56,7 +56,7 @@ export default function Register() {
       } else if (err.message) {
         errorMessage = err.message
       }
-      
+
       setError(errorMessage)
     }
   }

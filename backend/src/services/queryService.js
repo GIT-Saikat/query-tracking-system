@@ -4,9 +4,6 @@ const logger = require('../utils/logger');
 const config = require('../config/config');
 const MLService = require('./mlService');
 
-/**
- * Calculate SLA due date based on priority
- */
 const calculateSlaDueAt = (priority) => {
   const hours = config.slaTimes[priority] || config.slaTimes.MEDIUM;
   const dueDate = new Date();
@@ -14,35 +11,26 @@ const calculateSlaDueAt = (priority) => {
   return dueDate;
 };
 
-/**
- * Auto-detect priority based on content and metadata
- */
 const detectPriority = (content, isVip = false, sentiment = 'NEUTRAL') => {
-  // VIP customers get higher priority
+
   if (isVip) {
     return 'HIGH';
   }
 
-  // Negative sentiment gets higher priority
   if (sentiment === 'NEGATIVE') {
     return 'HIGH';
   }
 
-  // Check for urgent keywords
   const urgentKeywords = ['urgent', 'critical', 'emergency', 'asap', 'immediately', 'broken', 'down'];
   const contentLower = content.toLowerCase();
-  
+
   if (urgentKeywords.some(keyword => contentLower.includes(keyword))) {
     return 'HIGH';
   }
 
-  // Default to medium
   return 'MEDIUM';
 };
 
-/**
- * Get all queries with filters
- */
 const getQueries = async (filters = {}) => {
   try {
     const {
@@ -60,9 +48,8 @@ const getQueries = async (filters = {}) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Build where clause
     const where = {};
-    
+
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (channelId) where.channelId = channelId;
@@ -76,7 +63,6 @@ const getQueries = async (filters = {}) => {
       ];
     }
 
-    // If userId is provided, filter by assigned queries
     let assignmentFilter = {};
     if (userId) {
       assignmentFilter = {
@@ -157,9 +143,6 @@ const getQueries = async (filters = {}) => {
   }
 };
 
-/**
- * Get query by ID
- */
 const getQueryById = async (queryId) => {
   try {
     const query = await prisma.query.findUnique({
@@ -222,9 +205,6 @@ const getQueryById = async (queryId) => {
   }
 };
 
-/**
- * Create a new query with ML auto-tagging
- */
 const createQuery = async (queryData) => {
   try {
     const {
@@ -246,10 +226,9 @@ const createQuery = async (queryData) => {
       threadId,
       attachments = [],
       metadata,
-      skipMLAnalysis = false, // Option to skip ML analysis if already done
+      skipMLAnalysis = false,
     } = queryData;
 
-    // Verify channel exists
     const channel = await prisma.channel.findUnique({
       where: { id: channelId },
     });
@@ -258,7 +237,6 @@ const createQuery = async (queryData) => {
       throw new ValidationError('Channel not found');
     }
 
-    // Perform ML analysis if not skipped and content is provided
     let mlAnalysis = null;
     if (!skipMLAnalysis && content) {
       try {
@@ -280,14 +258,12 @@ const createQuery = async (queryData) => {
       }
     }
 
-    // Use ML analysis results or provided values
     const finalSentiment = sentiment || (mlAnalysis?.sentiment || 'NEUTRAL');
     const finalIntent = intent || (mlAnalysis?.intent || null);
     const finalConfidence = confidence ?? (mlAnalysis?.category_confidence || 0.5);
     const finalAutoTags = autoTags || (mlAnalysis?.auto_tags || []);
     const finalIsVip = isVip ?? (mlAnalysis?.is_vip || false);
-    
-    // Determine priority: use provided, ML result, or fallback to detection
+
     let finalPriority = priority;
     if (!finalPriority && mlAnalysis) {
       finalPriority = mlAnalysis.priority;
@@ -296,10 +272,9 @@ const createQuery = async (queryData) => {
       finalPriority = detectPriority(content, finalIsVip, finalSentiment);
     }
 
-    // Verify category if provided, or try to find category by ML result
     let finalCategoryId = categoryId;
     if (!finalCategoryId && mlAnalysis?.category) {
-      // Try to find category by name from ML analysis
+
       const category = await prisma.category.findFirst({
         where: {
           name: {
@@ -313,7 +288,6 @@ const createQuery = async (queryData) => {
       }
     }
 
-    // Verify category if provided
     if (finalCategoryId) {
       const category = await prisma.category.findUnique({
         where: { id: finalCategoryId },
@@ -324,13 +298,10 @@ const createQuery = async (queryData) => {
       }
     }
 
-    // Determine if urgent
     const isUrgent = mlAnalysis?.is_urgent || finalPriority === 'HIGH' || finalPriority === 'CRITICAL';
 
-    // Calculate SLA due date
     const slaDueAt = calculateSlaDueAt(finalPriority);
 
-    // Create query
     const query = await prisma.query.create({
       data: {
         channelId,
@@ -367,14 +338,10 @@ const createQuery = async (queryData) => {
   }
 };
 
-/**
- * Update query
- */
 const updateQuery = async (queryId, updateData) => {
   try {
     const query = await getQueryById(queryId);
 
-    // Recalculate SLA if priority is being updated
     if (updateData.priority && updateData.priority !== query.priority) {
       updateData.slaDueAt = calculateSlaDueAt(updateData.priority);
     }
@@ -407,9 +374,6 @@ const updateQuery = async (queryId, updateData) => {
   }
 };
 
-/**
- * Delete query
- */
 const deleteQuery = async (queryId) => {
   try {
     await getQueryById(queryId);
@@ -425,9 +389,6 @@ const deleteQuery = async (queryId) => {
   }
 };
 
-/**
- * Assign query to user
- */
 const assignQuery = async (queryId, userId, assignedBy, notes) => {
   try {
     const query = await getQueryById(queryId);
@@ -439,7 +400,6 @@ const assignQuery = async (queryId, userId, assignedBy, notes) => {
       throw new NotFoundError('User');
     }
 
-    // Check if already assigned
     const existingAssignment = await prisma.assignment.findFirst({
       where: {
         queryId,
@@ -451,7 +411,6 @@ const assignQuery = async (queryId, userId, assignedBy, notes) => {
       throw new ValidationError('Query is already assigned to this user');
     }
 
-    // Create assignment
     const assignment = await prisma.assignment.create({
       data: {
         queryId,
@@ -479,7 +438,6 @@ const assignQuery = async (queryId, userId, assignedBy, notes) => {
       },
     });
 
-    // Update query status if it's NEW
     if (query.status === 'NEW') {
       await prisma.query.update({
         where: { id: queryId },

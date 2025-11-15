@@ -7,14 +7,12 @@ const logger = require('./src/utils/logger');
 const routes = require('./src/routes');
 const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 const prisma = require('./src/config/database');
+const integrationManager = require('./src/services/integrationManager');
 
-// Initialize Express app
 const app = express();
 
-// Security middleware
 app.use(helmet());
 
-// CORS configuration
 app.use(
   cors({
     origin: config.corsOrigin,
@@ -22,7 +20,6 @@ app.use(
   })
 );
 
-// Rate limiting
 const limiter = rateLimit({
   windowMs: config.rateLimitWindowMs,
   max: config.rateLimitMaxRequests,
@@ -36,26 +33,20 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.originalUrl} - ${req.ip}`);
   next();
 });
 
-// API routes
 app.use('/api', routes);
 
-// 404 handler
 app.use(notFoundHandler);
 
-// Global error handler
 app.use(errorHandler);
 
-// Database connection test
 const testDatabaseConnection = async () => {
   try {
     await prisma.$connect();
@@ -66,51 +57,60 @@ const testDatabaseConnection = async () => {
   }
 };
 
-// Start server
 const startServer = async () => {
   try {
-    // Test database connection
+
     await testDatabaseConnection();
 
-    // Start listening
     const port = config.port;
     app.listen(port, () => {
       logger.info(`🚀 Server running on port ${port}`);
       logger.info(`🌍 Environment: ${config.nodeEnv}`);
       logger.info(`📝 API endpoint: http://localhost:${port}/api`);
     });
+
+    setTimeout(async () => {
+      try {
+        await integrationManager.startAllActiveChannels();
+        logger.info('✅ All channel integrations started');
+      } catch (error) {
+        logger.error('⚠️ Error starting channel integrations:', error);
+
+      }
+    }, 2000);
   } catch (error) {
     logger.error('❌ Error starting server:', error);
     process.exit(1);
   }
 };
 
-// Handle graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  await prisma.$disconnect();
-  process.exit(0);
-});
+const gracefulShutdown = async () => {
+  logger.info('Shutting down gracefully...');
 
-process.on('SIGINT', async () => {
-  logger.info('SIGINT signal received: closing HTTP server');
-  await prisma.$disconnect();
-  process.exit(0);
-});
+  try {
+    await integrationManager.stopAll();
+  } catch (error) {
+    logger.error('Error stopping integrations:', error);
+  }
 
-// Handle unhandled promise rejections
+  await prisma.$disconnect();
+
+  process.exit(0);
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
 process.on('unhandledRejection', (err) => {
   logger.error('UNHANDLED REJECTION! 💥 Shutting down...', err);
   process.exit(1);
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...', err);
   process.exit(1);
 });
 
-// Start the server
 startServer();
 
 module.exports = app;

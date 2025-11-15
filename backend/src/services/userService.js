@@ -3,9 +3,6 @@ const bcrypt = require('bcryptjs');
 const { NotFoundError, ValidationError } = require('../utils/errors');
 const logger = require('../utils/logger');
 
-/**
- * Get all users
- */
 const getUsers = async (filters = {}) => {
   try {
     const {
@@ -77,9 +74,6 @@ const getUsers = async (filters = {}) => {
   }
 };
 
-/**
- * Get user by ID
- */
 const getUserById = async (userId) => {
   try {
     const user = await prisma.user.findUnique({
@@ -116,14 +110,10 @@ const getUserById = async (userId) => {
   }
 };
 
-/**
- * Update user
- */
 const updateUser = async (userId, updateData) => {
   try {
     await getUserById(userId);
 
-    // If password is being updated, hash it
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
@@ -151,9 +141,6 @@ const updateUser = async (userId, updateData) => {
   }
 };
 
-/**
- * Delete user
- */
 const deleteUser = async (userId) => {
   try {
     await getUserById(userId);

@@ -6,9 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting database seed...');
 
-  // Create default admin user
   const hashedPassword = await bcrypt.hash('admin123', 10);
-  
+
   const admin = await prisma.user.upsert({
     where: { email: 'admin@example.com' },
     update: {},
@@ -23,7 +22,6 @@ async function main() {
     },
   });
 
-  // Create sample manager
   const managerPassword = await bcrypt.hash('manager123', 10);
   const manager = await prisma.user.upsert({
     where: { email: 'manager@example.com' },
@@ -39,7 +37,6 @@ async function main() {
     },
   });
 
-  // Create sample agents
   const agent1Password = await bcrypt.hash('agent123', 10);
   const agent1 = await prisma.user.upsert({
     where: { email: 'agent1@example.com' },
@@ -72,7 +69,6 @@ async function main() {
     },
   });
 
-  // Create default categories
   const categories = [
     { name: 'Question', description: 'General questions', color: '#3B82F6' },
     { name: 'Complaint', description: 'Customer complaints', color: '#EF4444' },
@@ -91,7 +87,6 @@ async function main() {
     });
   }
 
-  // Create default channels
   const channels = [
     { name: 'Email', type: 'EMAIL' },
     { name: 'Twitter', type: 'TWITTER' },
