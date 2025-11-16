@@ -79,7 +79,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
@@ -182,7 +181,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {
       <div className="mt-8">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Queries</h2>
         {isLoading ? (

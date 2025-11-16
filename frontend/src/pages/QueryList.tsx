@@ -83,7 +83,6 @@ export default function QueryList() {
         </div>
       </div>
 
-      {
       <div className="mt-6">
         <div className="flex gap-4">
           <div className="flex-1 relative">
@@ -163,7 +162,6 @@ export default function QueryList() {
         )}
       </div>
 
-      {
       <div className="mt-8">
         {isLoading ? (
           <div className="text-center py-12">
