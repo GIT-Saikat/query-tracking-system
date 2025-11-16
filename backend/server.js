@@ -57,6 +57,11 @@ const testDatabaseConnection = async () => {
   }
 };
 
+// Simple health check endpoint for Render
+app.get('/healthz', (req, res) => {
+  res.json({ ok: true });
+});
+
 const startServer = async () => {
   try {
 

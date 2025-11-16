@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: query-tracking-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Add the rest in Render dashboard or fill here with sync:false
+      # - key: DATABASE_URL
+      #   sync: false
+      # - key: CORS_ORIGIN
+      #   value: https://your-frontend.vercel.app
+      # - key: ML_SERVICE_URL
+      #   sync: false
+
