@@ -43,6 +43,19 @@ app.use((req, res, next) => {
 
 app.use('/api', routes);
 
+// Friendly root endpoint for base URL hits (e.g., Render service URL)
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Query Tracking backend is running. See /api for endpoints.',
+    endpoints: {
+      apiRoot: '/api',
+      health: '/healthz',
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use(notFoundHandler);
 
 app.use(errorHandler);
